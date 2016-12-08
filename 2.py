@@ -14,7 +14,7 @@ def maybe_increment(num, val):
 
 
 def bathroom_security(input):
-    steps = input.strip().split("\n")
+    steps = input.split("\n")
     pos = [1, 1]
     result = []
     for step in steps:
@@ -26,5 +26,5 @@ def bathroom_security(input):
         result.append(keypad[x][y])
     return "".join(list(map(str, result)))
 
-data = open('2_data.txt', 'r').read()
+data = open('2_data.txt', 'r').read().strip()
 print(bathroom_security(data))
