@@ -228,4 +228,157 @@ print(hash_password('abc'))
 print(hash_password('wtnhxymk'))
 print(hash_password_with_index('abc'))
 print(hash_password_with_index('wtnhxymk'))
+
+```
+### Day 6
+
+```python
+from collections import Counter
+
+def signals_and_noise(input, cb):
+    lines = input.split('\n')
+    counters = [Counter() for _ in range(len(lines[0]))]
+    for line in lines:
+        for idx in range(len(line)):
+            current_idx_counter = counters[idx]
+            letter = line[idx]
+            current_idx_counter[letter] += 1
+    return ''.join(list(map(cb, counters)))
+
+
+data = open('6_data.txt', 'r').read().strip()
+print(signals_and_noise(data, lambda x: x.most_common(1)[0][0]))
+print(signals_and_noise(data, lambda x: x.most_common()[-1][0]))
+```
+
+### Day 7
+
+```python
+def is_abba(string):
+    return string[0] != string[1] and string[0:2] == string[2:4][::-1]
+
+
+def is_aba(string):
+    return string[0] != string[1] and string[0] == string[2]
+
+
+def contains_abba(string):
+    if len(string) < 4:
+        return False
+    for i in range(len(string) - 2):
+        if is_abba(string[i:i + 4]):
+            return True
+    return False
+
+
+def contains_bab(aba, strings):
+    for str in strings:
+        if (aba[1] + aba[0] + aba[1]) in str:
+            return True
+    return False
+
+
+def split_string(string):
+    accept = []
+    reject = []
+    acceptable = True
+    slice = ''
+    for i in range(len(string)):
+        if string[i] == '[':
+            accept.append(slice)
+            acceptable = False
+            slice = ''
+        elif string[i] == ']':
+            reject.append(slice)
+            acceptable = True
+            slice = ''
+        else:
+            slice += string[i]
+    accept.append(slice) if acceptable else reject.append(slice)
+    return (accept, reject)
+
+
+def supports_TLS(string):
+    accept, reject = split_string(string)
+    if any([contains_abba(str) for str in reject]):
+        return False
+    return any([contains_abba(str) for str in accept])
+
+
+def supports_SSL(string):
+    accept, reject = split_string(string)
+    for str in accept:
+        abas = get_abas(str)
+        for aba in abas:
+            if contains_bab(aba, reject):
+                return True
+    return False
+
+
+def reducer(cb):
+    return lambda total, string: total + 1 if cb(string) else total
+
+
+def num_support_protocal(input, cb):
+    lines = input.split('\n')
+    return reduce(reducer(cb), lines, 0)
+
+
+data = open('7_data.txt', 'r').read().strip()
+print(num_support_protocal(data, supports_TLS))
+print(num_support_protocal(data, supports_SSL))
+```
+
+### Day 8
+
+```python
+import re
+
+def add_rect(grid, y, x):
+    for idx in range(x):
+        for idy in range(y):
+            grid[idx][idy] = '*'
+
+
+def rotate_row(grid, row, rotations):
+    for _ in range(rotations):
+        grid[row].insert(0, grid[row].pop())
+    return grid
+
+
+def rotate_col(grid, col, rotations):
+    for _ in range(rotations):
+        prev_val = grid[-1][col]
+        for idx in range(len(grid)):
+            current_val = grid[idx][col]
+            grid[idx][col] = prev_val
+            prev_val = current_val
+    return grid
+
+
+def two_factor(input):
+    grid = [[' '] * 50 for _ in range(6)]
+    lines = input.split('\n')
+    actions = {
+        '(\d+)x(\d+)': add_rect,
+        'x=(\d+)\D+(\d+)': rotate_col,
+        'y=(\d+)\D+(\d+)': rotate_row
+    }
+    for line in lines:
+        for pattern, action in actions.items():
+            match = re.search(pattern, line)
+            if match:
+                action(grid, int(match.groups(0)[0]), int(match.groups(0)[1]))
+    return grid
+
+def num_lights(grid):
+    return [item for sublist in grid for item in sublist].count('*')
+
+
+data = open('8_data.txt', 'r').read().strip()
+result = two_factor(data)
+for row in result:
+    print(''.join(row))
+print(num_lights(result))
+
 ```
